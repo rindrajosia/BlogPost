@@ -1,8 +1,7 @@
 const express = require('express');
+const { getPing } = require('../controllers/ping');
 const router = express.Router();
 
-router.get('/', (req, res) =>{
-  res.status(200).json({ success: true });
-});
+router.route('/').get(getPing);
 
 module.exports = router;
