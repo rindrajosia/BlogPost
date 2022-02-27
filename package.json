@@ -1,0 +1,23 @@
+{
+  "name": "blogpost",
+  "version": "1.0.0",
+  "description": "assesments",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rindrajosia/BlogPost.git"
+  },
+  "author": "Rindra Josia",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rindrajosia/BlogPost/issues"
+  },
+  "homepage": "https://github.com/rindrajosia/BlogPost#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
