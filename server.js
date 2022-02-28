@@ -22,3 +22,5 @@ app.use('/api/posts', posts);
 app.listen(
   PORT,
   console.log(`Server running in port ${process.env.NODE_ENV} mode on port ${PORT}`));
+
+module.exports = app;

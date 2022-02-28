@@ -36,11 +36,13 @@ exports.getPosts = (req, res, next) => {
       return data.data;
     }
   });
+
   async.parallel(postsArray, (err, result) => {
     if(err){
-      return res.status(400).json({"error":  "Error"});
+      return res.status(500).json({"error":  "Error"});
     }
     let uniqueValues = removeDuplicate(tags, result, sortBy, direction);
     res.status(200).json({posts: uniqueValues });
   });
+
 };
