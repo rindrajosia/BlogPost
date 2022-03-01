@@ -35,7 +35,6 @@ exports.removeDuplicate = (tags, arr, sortBy = "id", direction="asc") => {
   }else{
     arrayPost = [...new Set(arr[0].posts)];
   }
-
   return sortResult(arrayPost, sortBy, direction);
 
 

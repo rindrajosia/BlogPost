@@ -1,31 +1,133 @@
 const assert = require('assert');
 const nock = require('nock');
-const supertest = require('supertest');
+const request = require('supertest');
 const express = require('express');
 const app = require('../server');
+const promise_sort = require('./helper_sort');
+const promise_direction = require('./helper_direction');
 
-describe('unit testing /getPosts route', function() {
-  describe('testing with a dummy json', function(){
-    before(function(){
-      let fake_api = nock('https://api.hatchways.io')
+test('get posts that tech tag must present', async () => {
+    const mockResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.13,"reads":50361,"tags":["tech","health"]},
+      {"author":"Zackery Turner","authorId":12,"id":2,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.88,"reads":19645,"tags":["science","design","tech"]}
+      ]
+    };
+    nock('https://api.hatchways.io')
         .get('/assessment/blog/posts?tag=tech')
-        .reply(200, {"posts":[{"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.13,"reads":50361,"tags":["tech","health"]},{"author":"Zackery Turner","authorId":12,"id":2,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]},{"author":"Elisha Friedman","authorId":8,"id":4,"likes":728,"popularity":0.88,"reads":19645,"tags":["science","design","tech"]},{"author":"Adalyn Blevins","authorId":11,"id":12,"likes":590,"popularity":0.32,"reads":80351,"tags":["tech"]},{"author":"Elisha Friedman","authorId":8,"id":13,"likes":230,"popularity":0.31,"reads":64058,"tags":["design","tech"]},{"author":"Trevon Rodriguez","authorId":5,"id":14,"likes":311,"popularity":0.67,"reads":25644,"tags":["tech","history"]},{"author":"Lainey Ritter","authorId":1,"id":15,"likes":560,"popularity":0.8,"reads":81549,"tags":["culture","startups","tech"]},{"author":"Jaden Bryant","authorId":3,"id":18,"likes":983,"popularity":0.09,"reads":33952,"tags":["tech","history"]},{"author":"Zackery Turner","authorId":12,"id":24,"likes":940,"popularity":0.74,"reads":89299,"tags":["culture","tech","politics"]},{"author":"Elisha Friedman","authorId":8,"id":25,"likes":365,"popularity":0.12,"reads":32949,"tags":["politics","tech"]},{"author":"Zackery Turner","authorId":12,"id":26,"likes":748,"popularity":0.75,"reads":28239,"tags":["tech"]},{"author":"Kinley Crosby","authorId":10,"id":35,"likes":868,"popularity":0.2,"reads":66926,"tags":["tech"]},{"author":"Adalyn Blevins","authorId":11,"id":37,"likes":107,"popularity":0.55,"reads":35946,"tags":["tech","health","history"]},{"author":"Jon Abbott","authorId":4,"id":43,"likes":149,"popularity":0.07,"reads":77776,"tags":["science","tech"]},{"author":"Jon Abbott","authorId":4,"id":46,"likes":89,"popularity":0.96,"reads":79298,"tags":["culture","tech"]},{"author":"Jaden Bryant","authorId":3,"id":51,"likes":487,"popularity":0.01,"reads":98798,"tags":["design","startups","tech"]},{"author":"Bryson Bowers","authorId":6,"id":54,"likes":723,"popularity":0.56,"reads":312,"tags":["culture","tech"]},{"author":"Trevon Rodriguez","authorId":5,"id":58,"likes":466,"popularity":0.1,"reads":17389,"tags":["science","tech"]},{"author":"Tia Roberson","authorId":2,"id":59,"likes":971,"popularity":0.21,"reads":36154,"tags":["politics","tech"]},{"author":"Lainey Ritter","authorId":1,"id":76,"likes":122,"popularity":0.01,"reads":75771,"tags":["tech","health","politics"]},{"author":"Trevon Rodriguez","authorId":5,"id":77,"likes":407,"popularity":0.21,"reads":664,"tags":["politics","startups","tech","science"]},{"author":"Lainey Ritter","authorId":1,"id":82,"likes":140,"popularity":0.09,"reads":3201,"tags":["tech"]},{"author":"Rylee Paul","authorId":9,"id":84,"likes":233,"popularity":0.65,"reads":17854,"tags":["politics","tech","history"]},{"author":"Bryson Bowers","authorId":6,"id":85,"likes":25,"popularity":0.18,"reads":16861,"tags":["tech"]},{"author":"Adalyn Blevins","authorId":11,"id":89,"likes":251,"popularity":0.6,"reads":75503,"tags":["politics","startups","tech","history"]},{"author":"Trevon Rodriguez","authorId":5,"id":93,"likes":881,"popularity":0.41,"reads":73964,"tags":["tech","history"]},{"author":"Jon Abbott","authorId":4,"id":95,"likes":985,"popularity":0.42,"reads":55875,"tags":["politics","tech","health","history"]},{"author":"Tia Roberson","authorId":2,"id":99,"likes":473,"popularity":0.34,"reads":97868,"tags":["culture","startups","tech"]}]});
-    })
-    it('should return the expected json response', async function(){
-      let response = await supertest(app)
-  					.get('/api/posts?tags=tech');
-      assert(response.statusCode, 200);
-      assert(response.body.posts[0], {
-        author: 'Rylee Paul',
-        authorId: 9,
-        id: 1, likes: 960,
-        popularity: 0.13,
-        reads: 50361,
-        tags: [ 'tech', 'health' ]});
+        .reply(200, mockResponse);
 
-    })
-    after(function(){
-      nock.cleanAll();
-    })
-  })
+    const res = await request(app).get('/api/posts?tags=tech');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockResponse);
+});
+
+test('get posts that tech tag must present and sort it by popularity direction asc', async () => {
+    const mockAPIResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":2,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]}
+      ]
+    };
+    const mockResponse = {"posts":[
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":2,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]},
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      ]
+    };
+    nock('https://api.hatchways.io')
+        .get('/assessment/blog/posts?tag=tech')
+        .reply(200, mockAPIResponse);
+
+    const res = await request(app).get('/api/posts?tags=tech&sortBy=popularity');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockResponse);
+});
+
+test('get posts that tech tag must present and sort it by id direction desc', async () => {
+    const mockAPIResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":4,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]}
+      ]
+    };
+    nock('https://api.hatchways.io')
+        .get('/assessment/blog/posts?tag=tech')
+        .reply(200, mockAPIResponse);
+
+    const res = await request(app).get('/api/posts?tags=tech&sortBy=id&direction=desc');
+    expect(res.status).toBe(200);
+
+    expect(res.body.posts[0].id).toBe(4);
+    expect(res.body.posts[1].id).toBe(3);
+    expect(res.body.posts[2].id).toBe(1);
+
+});
+
+test('get posts that tech tag must present and sort it by popularity direction desc', async () => {
+    const mockAPIResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":4,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]}
+      ]
+    };
+    nock('https://api.hatchways.io')
+        .get('/assessment/blog/posts?tag=tech')
+        .reply(200, mockAPIResponse);
+
+    const res = await request(app).get('/api/posts?tags=tech&sortBy=popularity&direction=desc');
+    expect(res.status).toBe(200);
+
+    expect(res.body.posts[0].id).toBe(1);
+    expect(res.body.posts[1].id).toBe(4);
+    expect(res.body.posts[2].id).toBe(3);
+
+});
+
+
+test('Send error message if tag is not present', async () => {
+    const mockAPIResponse = {"error": "Tags parameter is required"};
+    nock('https://api.hatchways.io')
+      .get('/assessment/blog/posts?tag=tech')
+      .replyWithError(400,mockAPIResponse);
+
+    const res = await request(app).get('/api/posts?/tags=error');
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual(mockAPIResponse);
+
+});
+
+
+test('Send error message if sortBy parameter is present but is not valid', async () => {
+    const mockAPIResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":4,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]}
+      ]
+    };
+    nock('https://api.hatchways.io')
+        .get('/assessment/blog/posts?tag=tech')
+        .reply(200, mockAPIResponse);
+
+    promise_sort('/api/posts?/tags=tech&sortBy=error').catch(err => {
+      expect(err).toEqual(Error({"error": "sortBy parameter is invalid"}));
+    });
+
+});
+
+test('Send error message if sdirection parameter is present but is not valid', async () => {
+    const mockAPIResponse = {"posts":[
+      {"author":"Rylee Paul","authorId":9,"id":1,"likes":960,"popularity":0.75,"reads":50361,"tags":["tech","health"]},
+      {"author":"Elisha Friedman","authorId":8,"id":3,"likes":728,"popularity":0.13,"reads":19645,"tags":["science","design","tech"]},
+      {"author":"Zackery Turner","authorId":12,"id":4,"likes":469,"popularity":0.68,"reads":90406,"tags":["startups","tech","history"]}
+      ]
+    };
+    nock('https://api.hatchways.io')
+        .get('/assessment/blog/posts?tag=tech')
+        .reply(200, mockAPIResponse);
+
+    promise_direction('/api/posts?/tags=tech&sdirection=error').catch(err => {
+      expect(err).toEqual(Error({"error": "direction parameter is invalid"}));
+    });
+
 });
